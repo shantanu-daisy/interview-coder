@@ -16,6 +16,9 @@ export default defineConfig({
         },
         vite: {
           build: {
+            outDir: "dist-electron",
+            sourcemap: true,
+            minify: false,
             rollupOptions: {
               external: ["sharp", "electron", "electron-is-dev"]
             }
@@ -26,12 +29,26 @@ export default defineConfig({
         entry: "electron/preload.ts",
         onstart(options) {
           options.reload()
+        },
+        vite: {
+          build: {
+            outDir: "dist-electron",
+            sourcemap: true,
+            rollupOptions: {
+              external: ["electron"]
+            }
+          }
         }
       }
     ])
   ],
+  base: process.env.NODE_ENV === "production" ? "./" : "/",
   server: {
-    port: 5173
+    port: 5173,
+    strictPort: true,
+    watch: {
+      usePolling: true
+    }
   },
   resolve: {
     alias: {
@@ -41,6 +58,7 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    sourcemap: true,
     rollupOptions: {
       external: ["sharp", "electron", "electron-is-dev"],
       input: {

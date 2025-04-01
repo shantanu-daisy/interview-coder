@@ -6,6 +6,14 @@ import { ShortcutsHelper } from "./shortcuts"
 import { ProcessingHelper } from "./ProcessingHelper"
 import { autoUpdater } from "electron-updater"
 import { initAutoUpdater } from "./autoUpdater"
+import { PROCESSING_EVENTS } from "./constants"
+import { screen, shell, ipcMain } from "electron"
+import path from "path"
+import fs from "fs"
+import { configHelper } from "./ConfigHelper"
+import * as dotenv from "dotenv"
+
+const isDev = process.env.NODE_ENV === "development"
 
 export class AppState {
   private static instance: AppState | null = null
@@ -16,7 +24,7 @@ export class AppState {
   public processingHelper: ProcessingHelper
 
   // View management
-  private view: "queue" | "solutions" = "queue"
+  private view: "queue" | "solutions" | "question" = "queue"
 
   private problemInfo: {
     problem_statement: string
@@ -29,23 +37,7 @@ export class AppState {
   private hasDebugged: boolean = false
 
   // Processing events
-  public readonly PROCESSING_EVENTS = {
-    //global states
-    UNAUTHORIZED: "procesing-unauthorized",
-    NO_SCREENSHOTS: "processing-no-screenshots",
-    API_KEY_OUT_OF_CREDITS: "processing-api-key-out-of-credits",
-
-    //states for generating the initial solution
-    INITIAL_START: "initial-start",
-    PROBLEM_EXTRACTED: "problem-extracted",
-    SOLUTION_SUCCESS: "solution-success",
-    INITIAL_SOLUTION_ERROR: "solution-error",
-
-    //states for processing the debugging
-    DEBUG_START: "debug-start",
-    DEBUG_SUCCESS: "debug-success",
-    DEBUG_ERROR: "debug-error"
-  } as const
+  public readonly PROCESSING_EVENTS = PROCESSING_EVENTS
 
   constructor() {
     // Initialize WindowHelper with this
@@ -73,11 +65,11 @@ export class AppState {
     return this.windowHelper.getMainWindow()
   }
 
-  public getView(): "queue" | "solutions" {
+  public getView(): "queue" | "solutions" | "question" {
     return this.view
   }
 
-  public setView(view: "queue" | "solutions"): void {
+  public setView(view: "queue" | "solutions" | "question"): void {
     this.view = view
     this.screenshotHelper.setView(view)
   }
@@ -218,8 +210,9 @@ async function initializeApp() {
     }
   })
 
-  app.dock?.hide() // Hide dock icon (optional)
+  // app.dock?.hide() // Hide dock icon (optional)
   app.commandLine.appendSwitch("disable-background-timer-throttling")
+  
 }
 
 // Start the application

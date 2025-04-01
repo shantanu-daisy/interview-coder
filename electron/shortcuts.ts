@@ -1,5 +1,6 @@
 import { globalShortcut, app } from "electron"
 import { AppState } from "./main" // Adjust the import path if necessary
+import { PROCESSING_EVENTS } from "./constants"
 
 export class ShortcutsHelper {
   private appState: AppState
@@ -54,25 +55,25 @@ export class ShortcutsHelper {
     })
 
     // New shortcuts for moving the window
-    globalShortcut.register("CommandOrControl+Left", () => {
+    globalShortcut.register("CommandOrControl+J", () => {
       console.log("Command/Ctrl + Left pressed. Moving window left.")
       this.appState.moveWindowLeft()
     })
 
-    globalShortcut.register("CommandOrControl+Right", () => {
+    globalShortcut.register("CommandOrControl+K", () => {
       console.log("Command/Ctrl + Right pressed. Moving window right.")
       this.appState.moveWindowRight()
     })
-    globalShortcut.register("CommandOrControl+Down", () => {
+    globalShortcut.register("CommandOrControl+L", () => {
       console.log("Command/Ctrl + down pressed. Moving window down.")
       this.appState.moveWindowDown()
     })
-    globalShortcut.register("CommandOrControl+Up", () => {
+    globalShortcut.register("CommandOrControl+O", () => {
       console.log("Command/Ctrl + Up pressed. Moving window Up.")
       this.appState.moveWindowUp()
     })
 
-    globalShortcut.register("CommandOrControl+B", () => {
+    globalShortcut.register("CommandOrControl+Shift+B", () => {
       this.appState.toggleMainWindow()
       // If window exists and we're showing it, bring it to front
       const mainWindow = this.appState.getMainWindow()
@@ -86,6 +87,55 @@ export class ShortcutsHelper {
               mainWindow.setAlwaysOnTop(true, "floating")
             }
           }, 100)
+        }
+      }
+    })
+    globalShortcut.register("CommandOrControl+Shift+E", () => {
+      // Open a text box and ask a question. when question is written, then it will submit the question
+      const mainWindow = this.appState.getMainWindow()
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        console.log("Command/Ctrl + SHIFT + E pressed. Opening question box.")
+        mainWindow.webContents.send(PROCESSING_EVENTS.OPEN_QUESTION_BOX)
+        
+        // Ensure window is visible and focused when opening question box
+        if (!this.appState.isVisible()) {
+          this.appState.toggleMainWindow()
+          
+          // Force the window to the front on macOS
+          if (process.platform === "darwin") {
+            mainWindow.setAlwaysOnTop(true, "normal")
+            // Reset alwaysOnTop after a brief delay
+            setTimeout(() => {
+              if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.setAlwaysOnTop(true, "floating")
+              }
+            }, 100)
+          }
+        }
+      }
+    })
+
+    globalShortcut.register("CommandOrControl+Shift+C", () => {
+      // Open the cheatsheet
+      const mainWindow = this.appState.getMainWindow()
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        console.log("Command/Ctrl + SHIFT + C pressed. Opening cheatsheet.")
+        mainWindow.webContents.send(PROCESSING_EVENTS.OPEN_CHEATSHEET)
+        
+        // Ensure window is visible and focused when opening cheatsheet
+        if (!this.appState.isVisible()) {
+          this.appState.toggleMainWindow()
+          
+          // Force the window to the front on macOS
+          if (process.platform === "darwin") {
+            mainWindow.setAlwaysOnTop(true, "normal")
+            // Reset alwaysOnTop after a brief delay
+            setTimeout(() => {
+              if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.setAlwaysOnTop(true, "floating")
+              }
+            }, 100)
+          }
         }
       }
     })

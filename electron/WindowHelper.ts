@@ -33,6 +33,7 @@ export class WindowHelper {
 
   public setWindowDimensions(width: number, height: number): void {
     if (!this.mainWindow || this.mainWindow.isDestroyed()) return
+    // console.log("SETTING DIMENSIONS", width, height)
 
     // Get current window position
     const [currentX, currentY] = this.mainWindow.getPosition()
@@ -46,12 +47,14 @@ export class WindowHelper {
       workArea.width * (this.appState.getHasDebugged() ? 0.75 : 0.4)
     )
 
+    
+
     // Ensure width doesn't exceed max allowed width and height is reasonable
     const newWidth = Math.min(width + 32, maxAllowedWidth)
     const newHeight = Math.ceil(height)
 
     // Center the window horizontally if it would go off screen
-    const maxX = workArea.width - newWidth
+    const maxX = workArea.width
     const newX = Math.min(Math.max(currentX, 0), maxX)
 
     // Update window bounds
@@ -80,9 +83,10 @@ export class WindowHelper {
     this.currentX = 0 // Start at the left
 
     const windowSettings: Electron.BrowserWindowConstructorOptions = {
-      height: 600,
+      height: 0,
+      width: undefined,
       minWidth: undefined,
-      maxWidth: undefined,
+      // maxWidth: 0,
       x: this.currentX,
       y: 0,
       webPreferences: {
@@ -95,9 +99,10 @@ export class WindowHelper {
       transparent: true,
       fullscreenable: false,
       hasShadow: false,
-      backgroundColor: "#00000000",
+      // backgroundColor: "#00000000",
+      // backgroundColor: "#FFF"
       focusable: true,
-      alwaysOnTop: true
+      alwaysOnTop: true,
     }
 
     this.mainWindow = new BrowserWindow(windowSettings)

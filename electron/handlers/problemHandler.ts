@@ -59,7 +59,28 @@ export async function extractProblemInfo(
       url: `data:image/jpeg;base64,${imageData}`
     }
   }))
+  const prompt = `
+  Extract the following information from this coding problem image:
+  1. ENTIRE Problem statement (what needs to be solved)
+  2. Input/Output format
+  3. Constraints on the input
+  4. Example test cases
+  Format each test case exactly like this:
+  {'input': {'args': [nums, target]}, 'output': {'result': [0,1]}}
+  Note: test cases must have 'input.args' as an array of arguments in order,
+  'output.result' containing the expected return value.
+  Example for two_sum([2,7,11,15], 9) returning [0,1]:
+  {'input': {'args': [[2,7,11,15], 9]}, 'output': {'result': [0,1]}}
+  5. If the problem has starter code or a code format, include it as well.
+  `
 
+  const react_frontend_prompt = `
+  You are given a frontend coding problem. You are to be given a mockup of what to build in the React Framework with vanilla CSS.
+  Extract the following information from this coding problem image:
+  1. ENTIRE PRD of what needs to be built (what needs to be solved). Give a detailed PRD of what needs to be built that will be passed to the react frontend developer who wont get to see your mockups.
+  2. Details about component structure and hierarchy.
+  3. Details 
+  `
   // Construct the messages to send to the model
   const messages = [
     {
@@ -67,18 +88,7 @@ export async function extractProblemInfo(
       content: [
         {
           type: "text",
-          text:
-            "Extract the following information from this coding problem image:\n" +
-            "1. ENTIRE Problem statement (what needs to be solved)\n" +
-            "2. Input/Output format\n" +
-            "3. Constraints on the input\n" +
-            "4. Example test cases\n" +
-            "Format each test case exactly like this:\n" +
-            "{'input': {'args': [nums, target]}, 'output': {'result': [0,1]}}\n" +
-            "Note: test cases must have 'input.args' as an array of arguments in order,\n" +
-            "'output.result' containing the expected return value.\n" +
-            "Example for two_sum([2,7,11,15], 9) returning [0,1]:\n" +
-            "{'input': {'args': [[2,7,11,15], 9]}, 'output': {'result': [0,1]}}\n"
+          text: prompt
         },
         ...imageContents
       ]
@@ -303,6 +313,8 @@ export async function extractProblemInfo(
   }
 }
 
+const language = process.env.VITE_PROGRAMMING_DEFAULT_LANG
+
 export async function generateSolutionResponses(
   problemInfo: ProblemInfo
 ): Promise<any> {
@@ -312,8 +324,72 @@ export async function generateSolutionResponses(
       throw new Error("OpenAI API key not set")
     }
 
+    let constraints = problemInfo.constraints?.map((c) => {
+      let constraintStr = `- ${c.description}`
+      if (c.range) {
+        constraintStr += ` (${c.parameter}: ${c.range.min} to ${c.range.max})`
+      }
+      return constraintStr
+    })
+    .join("\n") ?? "No constraints specified"
+
+    
+
     // Build the complete prompt with all problem information
     const promptContent = `Given the following coding problem:
+
+PROBLEM STATEMENT:
+${problemInfo.problem_statement}
+
+CONSTRAINTS:
+${constraints}
+
+Input Format:
+${problemInfo.input_format?.description }
+Parameters:
+${
+  problemInfo.input_format?.parameters
+    ?.map((p) => `- ${p.name}: ${p.type}${p.subtype ? ` of ${p.subtype}` : ""}`)
+    .join("\n") ?? "No parameters available"
+}
+
+
+
+Output Format:
+${problemInfo.output_format?.description ?? "Output format not available"}
+Returns: ${problemInfo.output_format?.type ?? "Type not specified"}${
+      problemInfo.output_format?.subtype
+        ? ` of ${problemInfo.output_format.subtype}`
+        : ""
+    }
+
+
+
+Test Cases:
+${JSON.stringify(problemInfo.test_cases ?? "No test cases available", null, 2)}
+
+Generate a solution in this format:
+{
+  "thoughts": [
+    "List any questions you should ask to show knowledge during the interview. Give at least 2 questions.",
+    "First thought showing recognition of the problem and core challenge",
+    "Second thought naming specific algorithm/data structure being considered. Any possible solution strategies you should try like whether its a tree problem or if it can be solved with BFS/DFS.",
+    "Third Explain the reasoning behind your choice of algorithm/data structure. Why did we choose this approach?",
+    "Fourth thought showing confidence in approach while acknowledging details needed"
+  ],
+  "code": "The ${language} solution with comments explaining the code",
+  "time_complexity": "The time complexity in form O(_) because _",
+  "space_complexity": "The space complexity in form O(_) because _"
+}
+
+Format Requirements:
+1. Use actual line breaks in code field
+2. Indent code properly with spaces
+3. Include clear code comments
+4. Response must be valid JSON
+5. Return only the JSON object with no markdown or other formatting`
+
+const reactPromptContent = `Given the following coding problem where you need to build this frontend react component application:
 
 Problem Statement:
 ${problemInfo.problem_statement ?? "Problem statement not available"}
@@ -354,11 +430,13 @@ ${JSON.stringify(problemInfo.test_cases ?? "No test cases available", null, 2)}
 Generate a solution in this format:
 {
   "thoughts": [
+    "List any questions you should ask to show knowledge during the interview. Give at least 2 questions.",
     "First thought showing recognition of the problem and core challenge",
-    "Second thought naming specific algorithm/data structure being considered",
-    "Third thought showing confidence in approach while acknowledging details needed"
+    "Second thought naming specific algorithm/data structure being considered. Any possible solution strategies you should try like whether its a tree problem or if it can be solved with BFS/DFS.",
+    "Third Explain the reasoning behind your choice of algorithm/data structure. Why did we choose this approach?",
+    "Fourth thought showing confidence in approach while acknowledging details needed"
   ],
-  "code": "The Python solution with comments explaining the code",
+  "code": "The ${language} solution with comments explaining the code. Make sure to include all the files needed to build the application. Because this is a react application, make sure to include the html, css, and any neccessary ts files needed to build the application. ",
   "time_complexity": "The time complexity in form O(_) because _",
   "space_complexity": "The space complexity in form O(_) because _"
 }
@@ -377,7 +455,7 @@ Format Requirements:
         messages: [
           {
             role: "user",
-            content: promptContent
+            content: language === "REACT" ? reactPromptContent : promptContent
           }
         ]
       },

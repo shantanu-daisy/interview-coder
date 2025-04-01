@@ -5,6 +5,8 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { dracula } from "react-syntax-highlighter/dist/esm/styles/prism"
 
 import ScreenshotQueue from "../components/Queue/ScreenshotQueue"
+import FollowUpForm from "../components/Common/FollowUpForm"
+import ConversationView from "../components/Common/ConversationView"
 
 import { ProblemStatementData } from "../types/solutions"
 import SolutionCommands from "../components/Solutions/SolutionCommands"
@@ -40,11 +42,13 @@ export const ContentSection = ({
 const SolutionSection = ({
   title,
   content,
-  isLoading
+  isLoading,
+  currentLanguage = "python"
 }: {
   title: string
   content: React.ReactNode
   isLoading: boolean
+  currentLanguage: string 
 }) => (
   <div className="space-y-2">
     <h2 className="text-[13px] font-medium text-white tracking-wide">
@@ -62,14 +66,15 @@ const SolutionSection = ({
       <div className="w-full">
         <SyntaxHighlighter
           showLineNumbers
-          language="python"
+          language={currentLanguage == "golang" ? "go" : currentLanguage}
           style={dracula}
           customStyle={{
             maxWidth: "100%",
             margin: 0,
             padding: "1rem",
             whiteSpace: "pre-wrap",
-            wordBreak: "break-all"
+            wordBreak: "break-all",
+            backgroundColor: "rgba(22, 27, 34, 0.5)"
           }}
           wrapLongLines={true}
         >
@@ -80,6 +85,42 @@ const SolutionSection = ({
   </div>
 )
 
+// export const ComplexitySection = ({
+//   timeComplexity,
+//   spaceComplexity,
+//   isLoading
+// }: {
+//   timeComplexity: string | null
+//   spaceComplexity: string | null
+//   isLoading: boolean
+// }) => (
+//   <div className="space-y-2">
+//     <h2 className="text-[13px] font-medium text-white tracking-wide">
+//       Complexity
+//     </h2>
+//     {isLoading ? (
+//       <p className="text-xs bg-gradient-to-r from-gray-300 via-gray-100 to-gray-300 bg-clip-text text-transparent animate-pulse">
+//         Calculating complexity...
+//       </p>
+//     ) : (
+//       <div className="space-y-1">
+//         <div className="flex items-start gap-2 text-[13px] leading-[1.4] text-gray-100">
+//           <div className="w-1 h-1 rounded-full bg-blue-400/80 mt-2 shrink-0" />
+//           <div>
+//             <strong>Time:</strong> {timeComplexity}
+//           </div>
+//         </div>
+//         <div className="flex items-start gap-2 text-[13px] leading-[1.4] text-gray-100">
+//           <div className="w-1 h-1 rounded-full bg-blue-400/80 mt-2 shrink-0" />
+//           <div>
+//             <strong>Space:</strong> {spaceComplexity}
+//           </div>
+//         </div>
+//       </div>
+//     )}
+//   </div>
+// )
+
 export const ComplexitySection = ({
   timeComplexity,
   spaceComplexity,
@@ -88,38 +129,68 @@ export const ComplexitySection = ({
   timeComplexity: string | null
   spaceComplexity: string | null
   isLoading: boolean
-}) => (
-  <div className="space-y-2">
-    <h2 className="text-[13px] font-medium text-white tracking-wide">
-      Complexity
-    </h2>
-    {isLoading ? (
-      <p className="text-xs bg-gradient-to-r from-gray-300 via-gray-100 to-gray-300 bg-clip-text text-transparent animate-pulse">
-        Calculating complexity...
-      </p>
-    ) : (
-      <div className="space-y-1">
-        <div className="flex items-start gap-2 text-[13px] leading-[1.4] text-gray-100">
-          <div className="w-1 h-1 rounded-full bg-blue-400/80 mt-2 shrink-0" />
-          <div>
-            <strong>Time:</strong> {timeComplexity}
+}) => {
+  // Helper to ensure we have proper complexity values
+  const formatComplexity = (complexity: string | null): string => {
+    if (!complexity) return "O(n) - Linear time/space complexity";
+    
+    // Return the complexity as is if it already has Big O notation
+    if (complexity.match(/O\([^)]+\)/i)) {
+      return complexity;
+    }
+    
+    // Otherwise, add a default Big O
+    return `O(n) - ${complexity}`;
+  };
+  
+  const formattedTimeComplexity = formatComplexity(timeComplexity);
+  const formattedSpaceComplexity = formatComplexity(spaceComplexity);
+  
+  return (
+    <div className="space-y-2">
+      <h2 className="text-[13px] font-medium text-white tracking-wide">
+        Complexity
+      </h2>
+      {isLoading ? (
+        <p className="text-xs bg-gradient-to-r from-gray-300 via-gray-100 to-gray-300 bg-clip-text text-transparent animate-pulse">
+          Calculating complexity...
+        </p>
+      ) : (
+        <div className="space-y-3">
+          <div className="text-[13px] leading-[1.4] text-gray-100 bg-white/5 rounded-md p-3">
+            <div className="flex items-start gap-2">
+              <div className="w-1 h-1 rounded-full bg-blue-400/80 mt-2 shrink-0" />
+              <div>
+                <strong>Time:</strong> {formattedTimeComplexity}
+              </div>
+            </div>
+          </div>
+          <div className="text-[13px] leading-[1.4] text-gray-100 bg-white/5 rounded-md p-3">
+            <div className="flex items-start gap-2">
+              <div className="w-1 h-1 rounded-full bg-blue-400/80 mt-2 shrink-0" />
+              <div>
+                <strong>Space:</strong> {formattedSpaceComplexity}
+              </div>
+            </div>
           </div>
         </div>
-        <div className="flex items-start gap-2 text-[13px] leading-[1.4] text-gray-100">
-          <div className="w-1 h-1 rounded-full bg-blue-400/80 mt-2 shrink-0" />
-          <div>
-            <strong>Space:</strong> {spaceComplexity}
-          </div>
-        </div>
-      </div>
-    )}
-  </div>
-)
+      )}
+    </div>
+  );
+}
+
+interface Message {
+  role: string;
+  content: string;
+}
 
 interface SolutionsProps {
-  setView: React.Dispatch<React.SetStateAction<"queue" | "solutions" | "debug">>
+  setView: (view: "queue" | "solutions" | "debug" | "question" | "cheatsheet") => void;
+  currentLanguage: string;
+  setLanguage: (language: string) => void;
 }
-const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
+
+const Solutions: React.FC<SolutionsProps> = ({ setView, currentLanguage = 'python', setLanguage }) => {
   const queryClient = useQueryClient()
   const contentRef = useRef<HTMLDivElement>(null)
 
@@ -134,6 +205,11 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
   const [spaceComplexityData, setSpaceComplexityData] = useState<string | null>(
     null
   )
+
+  // New state for handling follow-up questions
+  const [showFollowUp, setShowFollowUp] = useState(false)
+  const [followUpLoading, setFollowUpLoading] = useState(false)
+  const [messages, setMessages] = useState<Message[]>([])
 
   const [isTooltipVisible, setIsTooltipVisible] = useState(false)
   const [tooltipHeight, setTooltipHeight] = useState(0)
@@ -291,7 +367,7 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
       resizeObserver.disconnect()
       cleanupFunctions.forEach((cleanup) => cleanup())
     }
-  }, [isTooltipVisible, tooltipHeight])
+  }, [isTooltipVisible, tooltipHeight, solutionData, thoughtsData, timeComplexityData, spaceComplexityData])
 
   useEffect(() => {
     setProblemStatementData(
@@ -322,6 +398,31 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
     return () => unsubscribe()
   }, [queryClient])
 
+
+  // Effect to set solution context when data is available
+  useEffect(() => {
+    const setSolutionContextForQuestions = async () => {
+      if (solutionData && thoughtsData && timeComplexityData && spaceComplexityData) {
+        try {
+          // First reset any existing conversation
+          await window.electronAPI.resetConversation();
+          
+          // Then set the new solution context
+          await window.electronAPI.setSolutionContext(
+            solutionData,
+            thoughtsData,
+            timeComplexityData,
+            spaceComplexityData
+          );
+        } catch (error) {
+          console.error("Error setting solution context:", error);
+        }
+      }
+    };
+
+    setSolutionContextForQuestions();
+  }, [solutionData, thoughtsData, timeComplexityData, spaceComplexityData]);
+
   const handleTooltipVisibilityChange = (visible: boolean, height: number) => {
     setIsTooltipVisible(visible)
     setTooltipHeight(height)
@@ -347,6 +448,31 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
     }
   }
 
+  // Handle follow-up question submission
+  const handleFollowUpSubmit = async (question: string) => {
+    setFollowUpLoading(true);
+    
+    // Add the user's question to the messages array
+    const userMessage: Message = { role: "user", content: question };
+    setMessages(prev => [...prev, userMessage]);
+    
+    try {
+      const response = await window.electronAPI.askQuestion(question);
+      if (response.success) {
+        // Add the assistant's response to the messages array
+        const assistantMessage: Message = { role: "assistant", content: response.answer || "" };
+        setMessages(prev => [...prev, assistantMessage]);
+      } else {
+        showToast("Error", response.error || "Failed to get an answer", "error");
+      }
+    } catch (error) {
+      console.error("Error asking follow-up question:", error);
+      showToast("Error", "Failed to communicate with the API", "error");
+    } finally {
+      setFollowUpLoading(false);
+    }
+  };
+
   return (
     <>
       {!isResetting && queryClient.getQueryData(["new_solution"]) ? (
@@ -354,6 +480,8 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
           <Debug
             isProcessing={debugProcessing}
             setIsProcessing={setDebugProcessing}
+            // currentLanguage={currentLanguage}
+            // setLanguage={setLanguage}
           />
         </>
       ) : (
@@ -427,12 +555,41 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
                       title="Solution"
                       content={solutionData}
                       isLoading={!solutionData}
+                      currentLanguage={currentLanguage}
                     />
+                    
                     <ComplexitySection
                       timeComplexity={timeComplexityData}
                       spaceComplexity={spaceComplexityData}
                       isLoading={!timeComplexityData || !spaceComplexityData}
                     />
+                    
+                    {/* Follow Up Questions Section */}
+                    <div className="pt-4 border-t border-zinc-700/50">
+                      {!showFollowUp ? (
+                        <button
+                          onClick={() => setShowFollowUp(true)}
+                          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                        >
+                          Ask Questions About This Solution
+                        </button>
+                      ) : (
+                        <div className="space-y-4">
+                          <h3 className="text-white font-medium">Questions & Answers</h3>
+                          
+                          {messages.length > 0 && (
+                            <div className="mb-4 max-h-[400px] overflow-y-auto">
+                              <ConversationView messages={messages} />
+                            </div>
+                          )}
+                          
+                          <FollowUpForm
+                            onSubmit={handleFollowUpSubmit}
+                            isLoading={followUpLoading}
+                          />
+                        </div>
+                      )}
+                    </div>
                   </>
                 )}
               </div>

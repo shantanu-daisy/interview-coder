@@ -30,7 +30,7 @@ const ExtraScreenshotsQueueCommands: React.FC<
   }
 
   return (
-    <div>
+    <div className="">
       <div className="pt-2 w-fit">
         <div className="text-xs text-white/90 backdrop-blur-md bg-black/60 rounded-lg py-2 px-4 flex items-center justify-center gap-4">
           {/* Show/Hide */}

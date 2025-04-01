@@ -3,12 +3,15 @@
 import { ipcMain } from "electron"
 import { AppState } from "./main"
 import { store } from "./store"
+import { processQuestion, resetConversation, setSolutionContext } from "./handlers/questionHandler"
 
 export function initializeIpcHandlers(appState: AppState): void {
   ipcMain.handle(
     "update-content-dimensions",
     async (event, { width, height }: { width: number; height: number }) => {
       if (width && height) {
+        console.log("SETTING DIMENSIONS", width, height)
+        // console.log(event)
         appState.setWindowDimensions(width, height)
       }
     }
@@ -72,11 +75,52 @@ export function initializeIpcHandlers(appState: AppState): void {
 
   ipcMain.handle("set-api-key", (_event, apiKey: string) => {
     try {
-      store.set("openaiApiKey", apiKey)
+      // store.("openaiApiKey", apiKey)
       return { success: true }
     } catch (error) {
       console.error("Error setting API key:", error)
       return { success: false, error: "Failed to set API key" }
     }
   })
+
+  // Add handler for processing questions
+  ipcMain.handle("ask-question", async (_event, question: string) => {
+    try {
+      return await processQuestion(question);
+    } catch (error: any) {
+      console.error("Error processing question:", error);
+      return { 
+        success: false, 
+        error: error.message || "Failed to process question" 
+      };
+    }
+  });
+  
+  // Add handler for resetting conversation
+  ipcMain.handle("reset-conversation", async () => {
+    try {
+      resetConversation();
+      return { success: true };
+    } catch (error: any) {
+      console.error("Error resetting conversation:", error);
+      return { 
+        success: false, 
+        error: error.message || "Failed to reset conversation" 
+      };
+    }
+  });
+  
+  // Add handler for setting solution context
+  ipcMain.handle("set-solution-context", async (_event, solutionCode: string, thoughts: string[], timeComplexity: string, spaceComplexity: string) => {
+    try {
+      setSolutionContext(solutionCode, thoughts, timeComplexity, spaceComplexity);
+      return { success: true };
+    } catch (error: any) {
+      console.error("Error setting solution context:", error);
+      return { 
+        success: false, 
+        error: error.message || "Failed to set solution context" 
+      };
+    }
+  });
 }

@@ -9,23 +9,27 @@ import {
   CardTitle
 } from "./ui/card"
 
+const ENV_API_KEY = import.meta.env.VITE_OPENAI_API_KEY
+
 interface ApiKeyAuthProps {
   onApiKeySubmit: (apiKey: string) => void
 }
 
 const ApiKeyAuth: React.FC<ApiKeyAuthProps> = ({ onApiKeySubmit }) => {
-  const [apiKey, setApiKey] = useState("")
+  const [apiKey, setApiKey] = useState(ENV_API_KEY)
   const contentRef = useRef<HTMLDivElement>(null)
+  
+  
   useEffect(() => {
     // Height update logic
     const updateDimensions = () => {
       if (contentRef.current) {
         let contentHeight = contentRef.current.scrollHeight
         const contentWidth = contentRef.current.scrollWidth
-        window.electronAPI.updateContentDimensions({
-          width: contentWidth,
-          height: contentHeight
-        })
+        // window.electronAPI.updateContentDimensions({
+        //   width: contentWidth,
+        //   height: contentHeight
+        // })
       }
     }
 
@@ -73,7 +77,7 @@ const ApiKeyAuth: React.FC<ApiKeyAuthProps> = ({ onApiKeySubmit }) => {
             <div className="space-y-2">
               <Input
                 type="password"
-                placeholder="sk-..."
+                placeholder={ENV_API_KEY}
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 className="w-full"
