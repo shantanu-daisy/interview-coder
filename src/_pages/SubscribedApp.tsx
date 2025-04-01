@@ -14,6 +14,7 @@ interface SubscribedAppProps {
 const SubscribedApp: React.FC<SubscribedAppProps> = ({
   currentLanguage,
   setLanguage
+}) => {
   const queryClient = useQueryClient()
   const [view, setView] = useState<"queue" | "solutions" | "debug" | "question" | "cheatsheet">("queue")
   const containerRef = useRef<HTMLDivElement>(null)
