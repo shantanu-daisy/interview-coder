@@ -1,5 +1,4 @@
 import { contextBridge, ipcRenderer } from "electron"
-import { PROCESSING_EVENTS } from "./constants"
 const { shell } = require("electron")
 
 // Types for the exposed Electron API
@@ -37,19 +36,25 @@ interface ElectronAPI {
   updateApiKey: (apiKey: string) => Promise<void>
   setApiKey: (apiKey: string) => Promise<{ success: boolean }>
   openExternal: (url: string) => void
-  onOpenQuestionBox: (callback: () => void) => () => void
-  onOpenCheatsheet: (callback: () => void) => () => void
-  askQuestion: (question: string) => Promise<{ success: boolean; answer?: string; error?: string }>
-
-  // Add new API calls for conversation context
-  resetConversation: () => Promise<void>
-  setSolutionContext: (
-    solutionCode: string,
-    thoughts: string[],
-    timeComplexity: string,
-    spaceComplexity: string
-  ) => Promise<void>
 }
+
+export const PROCESSING_EVENTS = {
+  //global states
+  UNAUTHORIZED: "procesing-unauthorized",
+  NO_SCREENSHOTS: "processing-no-screenshots",
+  API_KEY_OUT_OF_CREDITS: "processing-api-key-out-of-credits",
+
+  //states for generating the initial solution
+  INITIAL_START: "initial-start",
+  PROBLEM_EXTRACTED: "problem-extracted",
+  SOLUTION_SUCCESS: "solution-success",
+  INITIAL_SOLUTION_ERROR: "solution-error",
+
+  //states for processing the debugging
+  DEBUG_START: "debug-start",
+  DEBUG_SUCCESS: "debug-success",
+  DEBUG_ERROR: "debug-error"
+} as const
 
 // Expose the Electron API to the renderer process
 contextBridge.exposeInMainWorld("electronAPI", {
@@ -170,37 +175,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
       )
     }
   },
-  onOpenQuestionBox: (callback: () => void) => {
-    const subscription = () => callback()
-    ipcRenderer.on(PROCESSING_EVENTS.OPEN_QUESTION_BOX, subscription)
-    return () => {
-      ipcRenderer.removeListener(PROCESSING_EVENTS.OPEN_QUESTION_BOX, subscription)
-    }
-  },
-  onOpenCheatsheet: (callback: () => void) => {
-    const subscription = () => callback()
-    ipcRenderer.on(PROCESSING_EVENTS.OPEN_CHEATSHEET, subscription)
-    return () => {
-      ipcRenderer.removeListener(PROCESSING_EVENTS.OPEN_CHEATSHEET, subscription)
-    }
-  },
-  askQuestion: (question: string) => 
-    ipcRenderer.invoke("ask-question", question),
   moveWindowLeft: () => ipcRenderer.invoke("move-window-left"),
   moveWindowRight: () => ipcRenderer.invoke("move-window-right"),
   updateApiKey: (apiKey: string) =>
     ipcRenderer.invoke("update-api-key", apiKey),
   setApiKey: (apiKey: string) => ipcRenderer.invoke("set-api-key", apiKey),
-  openExternal: (url: string) => shell.openExternal(url),
-
-  // Add the new API methods for conversation context
-  resetConversation: () => ipcRenderer.invoke("reset-conversation"),
-  setSolutionContext: (
-    solutionCode: string,
-    thoughts: string[],
-    timeComplexity: string,
-    spaceComplexity: string
-  ) => ipcRenderer.invoke("set-solution-context", solutionCode, thoughts, timeComplexity, spaceComplexity)
+  openExternal: (url: string) => shell.openExternal(url)
 } as ElectronAPI)
 
 // Add this focus restoration handler
