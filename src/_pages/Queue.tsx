@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from "react"
 import { useQuery } from "react-query"
 import ScreenshotQueue from "../components/Queue/ScreenshotQueue"
 import QueueCommands from "../components/Queue/QueueCommands"
-import { useToast } from "../contexts/toast"
-import { Screenshot } from "../types/screenshots"
+// import { useToast } from "../contexts/toast"
+import { useToast } from "../App"
 import { ToastVariant } from "../components/ui/toast"
+import { Screenshot } from "../types"
 interface QueueProps {
-  setView: (view: "queue" | "solutions" | "debug" | "question" | "cheatsheet") => void;
-  currentLanguage: string;
-  setLanguage: (language: string) => void;
+  setView: React.Dispatch<React.SetStateAction<"queue" | "solutions" | "debug" | "question" | "cheatsheet">>
+  currentLanguage?: string
+  setLanguage?: (language: string) => void
 }
 
 async function fetchScreenshots({showToast}: {showToast: (title: string, message: string, variant: ToastVariant) => void}): Promise<Screenshot[]> {
@@ -22,7 +23,7 @@ async function fetchScreenshots({showToast}: {showToast: (title: string, message
   }
 }
 
-const Queue: React.FC<QueueProps> = ({ setView, currentLanguage, setLanguage }) => {
+const Queue: React.FC<QueueProps> = ({ setView, currentLanguage = 'PYTHON', setLanguage }) => {
   const { showToast } = useToast()
 
   const [isTooltipVisible, setIsTooltipVisible] = useState(false)
@@ -56,22 +57,26 @@ const Queue: React.FC<QueueProps> = ({ setView, currentLanguage, setLanguage }) 
       console.error("Error deleting screenshot:", error)
     }
   }
-
-  useEffect(() => {
-    // Height update logic
-    const updateDimensions = () => {
+  const updateDimensions = () => {
       if (contentRef.current) {
         let contentHeight = contentRef.current.scrollHeight
         const contentWidth = contentRef.current.scrollWidth
         if (isTooltipVisible) {
           contentHeight += tooltipHeight
         }
-        // window.electronAPI.updateContentDimensions({
-        //   width: contentWidth,
-        //   height: contentHeight
-        // })
+        window.electronAPI.updateContentDimensions({
+          width: contentWidth,
+          height: contentHeight
+        })
       }
     }
+
+    useEffect(() => {
+      updateDimensions()
+    }, [])
+  useEffect(() => {
+    // Height update logic
+    
 
     // Initialize resize observer
     const resizeObserver = new ResizeObserver(updateDimensions)
@@ -155,7 +160,6 @@ const Queue: React.FC<QueueProps> = ({ setView, currentLanguage, setLanguage }) 
                   </button>
                 </div>
               </div>
-
               <div className="flex items-center gap-2">
                 <span className="text-[11px] leading-none truncate">
                   {screenshots.length === 0 ? "Ask Question" : "Question"}
