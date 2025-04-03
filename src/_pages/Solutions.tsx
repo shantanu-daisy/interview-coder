@@ -186,11 +186,11 @@ interface Message {
 
 interface SolutionsProps {
   setView: (view: "queue" | "solutions" | "debug" | "question" | "cheatsheet") => void;
-  currentLanguage: string;
-  setLanguage: (language: string) => void;
+  currentLanguage?: string;
+  setLanguage?: (language: string) => void;
 }
 
-const Solutions: React.FC<SolutionsProps> = ({ setView, currentLanguage = 'python', setLanguage }) => {
+const Solutions: React.FC<SolutionsProps> = ({ setView, currentLanguage = 'PYTHON', setLanguage }) => {
   const queryClient = useQueryClient()
   const contentRef = useRef<HTMLDivElement>(null)
 

@@ -5,7 +5,8 @@ export const PROCESSING_EVENTS = {
   UNAUTHORIZED: "procesing-unauthorized",
   NO_SCREENSHOTS: "processing-no-screenshots",
   API_KEY_OUT_OF_CREDITS: "processing-api-key-out-of-credits",
-
+  OUT_OF_CREDITS: "out-of-credits",
+  API_KEY_INVALID: "api-key-invalid",
   // States for generating the initial solution
   INITIAL_START: "initial-start",
   PROBLEM_EXTRACTED: "problem-extracted",

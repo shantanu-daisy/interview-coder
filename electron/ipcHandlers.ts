@@ -4,7 +4,7 @@ import { ipcMain } from "electron"
 import { AppState } from "./main"
 import { store } from "./store"
 import { processQuestion, resetConversation, setSolutionContext } from "./handlers/questionHandler"
-
+import { configHelper } from "./ConfigHelper"
 export function initializeIpcHandlers(appState: AppState): void {
   ipcMain.handle(
     "update-content-dimensions",
@@ -16,6 +16,10 @@ export function initializeIpcHandlers(appState: AppState): void {
       }
     }
   )
+
+  ipcMain.handle("get-config", () => {
+    return configHelper.loadConfig();
+  })
 
   ipcMain.handle("delete-screenshot", async (event, path: string) => {
     return appState.deleteScreenshot(path)
@@ -95,6 +99,15 @@ export function initializeIpcHandlers(appState: AppState): void {
       };
     }
   });
+
+  ipcMain.handle("open-settings-portal", () => {
+    const mainWindow = appState.getMainWindow();
+    if (mainWindow) {
+      mainWindow.webContents.send("show-settings-dialog");
+      return { success: true };
+    }
+    return { success: false, error: "Main window not available" };
+  })
   
   // Add handler for resetting conversation
   ipcMain.handle("reset-conversation", async () => {

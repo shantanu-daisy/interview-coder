@@ -64,18 +64,17 @@ const Queue: React.FC<QueueProps> = ({ setView, currentLanguage = 'PYTHON', setL
         if (isTooltipVisible) {
           contentHeight += tooltipHeight
         }
-        window.electronAPI.updateContentDimensions({
-          width: contentWidth,
-          height: contentHeight
-        })
+        // window.electronAPI.updateContentDimensions({
+        //   width: contentWidth,
+        //   height: contentHeight
+        // })
       }
     }
 
-    useEffect(() => {
-      updateDimensions()
-    }, [])
+    
   useEffect(() => {
     // Height update logic
+    updateDimensions()
     
 
     // Initialize resize observer

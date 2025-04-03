@@ -177,6 +177,31 @@ export class AppState {
 
 // Application initialization
 async function initializeApp() {
+  // solution to multiple window instances
+  // const gotTheLock = app.requestSingleInstanceLock()
+  
+  // if (!gotTheLock) {
+  //   console.log("Another instance is already running. Quitting... ------------------------------")
+  //   // app.quit()
+  //   // return
+  // }
+
+  // Handle second instance attempt
+  // app.on('second-instance', (event, commandLine, workingDirectory) => {
+  //   console.log("Second instance detected ------------------------------")
+  //   const mainWindow = AppState.getInstance().getMainWindow()
+  //   // If a window exists, focus it
+  //   if (mainWindow) {
+  //     if (mainWindow.isMinimized()) mainWindow.restore()
+  //     mainWindow.focus()
+      
+  //     // Optionally make it visible if it's hidden
+  //     if (!AppState.getInstance().isVisible()) {
+  //       AppState.getInstance().toggleMainWindow()
+  //     }
+  //   }
+  // })
+
   const appState = AppState.getInstance()
 
   // Initialize IPC handlers before window creation
