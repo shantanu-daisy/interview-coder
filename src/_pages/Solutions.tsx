@@ -485,7 +485,7 @@ const Solutions: React.FC<SolutionsProps> = ({ setView, currentLanguage = 'pytho
           />
         </>
       ) : (
-        <div ref={contentRef} className="relative space-y-3 px-4 py-3">
+        <div ref={contentRef} className="relative space-y-2 px-4 ">
           {/* Conditionally render the screenshot queue if solutionData is available */}
           {solutionData && (
             <div className="bg-transparent w-fit">

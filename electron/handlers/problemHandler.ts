@@ -36,6 +36,8 @@ interface ProblemInfo {
     }
   }>
   test_cases?: any // Adjust the type as needed
+  start_code?: string
+  future_steps?: string[]
 }
 
 interface StoreSchema {
@@ -72,6 +74,7 @@ export async function extractProblemInfo(
   Example for two_sum([2,7,11,15], 9) returning [0,1]:
   {'input': {'args': [[2,7,11,15], 9]}, 'output': {'result': [0,1]}}
   5. If the problem has starter code or a code format, include it as well.
+  6. If the problem has multiple levels or subproblems, extract all of those subproblems and the future steps the problem expects
   `
 
   const react_frontend_prompt = `
@@ -267,6 +270,23 @@ export async function extractProblemInfo(
               required: ["input", "output"]
             },
             minItems: 1
+          },
+          start_code: {
+            type: "string",
+            description: "The starting code for the problem which should be a starting point for the solution"
+          },
+          future_steps: {
+            type: "array",
+            description: "Array of the future steps for the problem requirements which should be a list of steps that need to be taken to solve the problem.",
+            // array of the steps. for example:
+            // Your task is to implement a simple container of integer numbers. Plan your design according to the level specifications below:
+            // Level 1: Container should support adding and removing numbers.
+            // Level 2: Container should support getting the median of the numbers stored in it.
+            // To move to the next level, you need to pass all the tests at this level when submitting the solution.
+            items: {
+              type: "string",
+              description: "The step for the problem requirements. For example: 'Level 1: Container should support adding and removing numbers.'"
+            }
           }
         },
         required: ["problem_statement"]
@@ -344,29 +364,36 @@ ${problemInfo.problem_statement}
 CONSTRAINTS:
 ${constraints}
 
-Input Format:
+INPUT FORMAT:
 ${problemInfo.input_format?.description }
-Parameters:
+
+PARAMETRES:
 ${
   problemInfo.input_format?.parameters
     ?.map((p) => `- ${p.name}: ${p.type}${p.subtype ? ` of ${p.subtype}` : ""}`)
     .join("\n") ?? "No parameters available"
 }
 
-
-
-Output Format:
+OUTPUT FORMAT:
 ${problemInfo.output_format?.description ?? "Output format not available"}
-Returns: ${problemInfo.output_format?.type ?? "Type not specified"}${
+
+RETURNS: 
+${problemInfo.output_format?.type ?? "Type not specified"}${
       problemInfo.output_format?.subtype
         ? ` of ${problemInfo.output_format.subtype}`
         : ""
     }
 
 
-
-Test Cases:
+TEST CASES:
 ${JSON.stringify(problemInfo.test_cases ?? "No test cases available", null, 2)}
+
+STARTER CODE:
+${problemInfo.start_code ?? "No starter code available"}
+
+FUTURE STEPS:
+consider the requirements of the problem in each level.
+${problemInfo.future_steps?.map((step) => `- ${step}`).join("\n") ?? "No future steps available"}
 
 Generate a solution in this format:
 {
@@ -377,7 +404,11 @@ Generate a solution in this format:
     "Third Explain the reasoning behind your choice of algorithm/data structure. Why did we choose this approach?",
     "Fourth thought showing confidence in approach while acknowledging details needed"
   ],
-  "code": "The ${language} solution with comments explaining the code",
+  "code": "The ${language} solution with comments explaining the code. Make sure to output the code for each level, and write all necessary code for each level following the starter code. For example:
+  // Level 1:
+  // Level 2:
+  // Level 3:
+  ",
   "time_complexity": "The time complexity in form O(_) because _",
   "space_complexity": "The space complexity in form O(_) because _"
 }
@@ -387,7 +418,8 @@ Format Requirements:
 2. Indent code properly with spaces
 3. Include clear code comments
 4. Response must be valid JSON
-5. Return only the JSON object with no markdown or other formatting`
+5. Return only the JSON object with no markdown or other formatting
+6. Use as vanilla ${language} code as possible, do not use any frameworks or libraries. Only use what is available in the starter code.`
 
 const reactPromptContent = `Given the following coding problem where you need to build this frontend react component application:
 
@@ -451,11 +483,11 @@ Format Requirements:
     const response = await axios.post(
       "https://api.openai.com/v1/chat/completions",
       {
-        model: "o1-mini",
+        model: "o3-mini",
         messages: [
           {
             role: "user",
-            content: language === "REACT" ? reactPromptContent : promptContent
+            content: promptContent
           }
         ]
       },
@@ -550,6 +582,7 @@ ${problemStatement}
 
 Input Format:
 ${inputFormatDescription}
+
 Parameters:
 ${inputParameters}
 
@@ -562,6 +595,12 @@ ${constraints}
 
 Example Test Cases:
 ${exampleTestCases}
+
+STARTER CODE:
+${problemInfo.start_code ?? "No starter code available"}
+
+FUTURE STEPS:
+${problemInfo.future_steps?.map((step) => `- ${step}`).join("\n") ?? "No future steps available"}
 
 First extract and analyze the code shown in the image. Then create an improved version while maintaining the same general approach and structure. The old code you save should ONLY be the exact code that you see on the screen, regardless of any optimizations or changes you make. Make all your changes in the new_code field. You should use the image that has the most recent, longest version of the code, making sure to combine multiple images if necessary.
 Focus on keeping the solution syntactically similar but with optimizations and INLINE comments ONLY ON lines of code that were changed. Make sure there are no extra line breaks and all the code that is unchanged is in the same line as it was in the original code.
@@ -641,7 +680,7 @@ IMPORTANT FORMATTING NOTES:
 
   // Prepare the payload for the API call
   const payload = {
-    model: "gpt-4o",
+    model: "o3-mini",
     messages: messages,
     max_tokens: 4000,
     temperature: 0,

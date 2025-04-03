@@ -10,7 +10,7 @@ export class ShortcutsHelper {
   }
 
   public registerGlobalShortcuts(): void {
-    globalShortcut.register("CommandOrControl+H", async () => {
+    globalShortcut.register("CommandOrControl+Shift+H", async () => {
       const mainWindow = this.appState.getMainWindow()
       if (mainWindow) {
         console.log("Taking screenshot...")
@@ -27,7 +27,7 @@ export class ShortcutsHelper {
       }
     })
 
-    globalShortcut.register("CommandOrControl+Enter", async () => {
+    globalShortcut.register("CommandOrControl+Shift+Enter", async () => {
       await this.appState.processingHelper.processScreenshots()
     })
 

@@ -8,7 +8,7 @@ const isDev = process.env.NODE_ENV === "development"
 
 const startUrl = isDev
   ? "http://localhost:5173"
-  : `file://${path.join(__dirname, "../dist/index.html")}`
+  : `file://${path.join(__dirname, "../dist/index.html").replace(/\\/g, '/')}`
 
 export class WindowHelper {
   private mainWindow: BrowserWindow | null = null
@@ -43,12 +43,14 @@ export class WindowHelper {
 
     // Use 75% width if debugging has occurred, otherwise use 60%
     const maxAllowedWidth = Math.floor(
-      workArea.width * (this.appState.getHasDebugged() ? 0.75 : 0.4)
+      workArea.width * (this.appState.getHasDebugged() ? 0.5 : 0.3) // Reduced from 0.75/0.4
     )
+    const maxAllowedHeight = Math.floor(workArea.height * 0.7)
 
     // Ensure width doesn't exceed max allowed width and height is reasonable
     const newWidth = Math.min(width + 32, maxAllowedWidth)
-    const newHeight = Math.ceil(height)
+    // const newHeight = Math.ceil(height)
+    const newHeight = Math.min(Math.ceil(height), maxAllowedHeight)
 
     // Center the window horizontally if it would go off screen
     const maxX = workArea.width
@@ -92,11 +94,11 @@ export class WindowHelper {
         preload: path.join(__dirname, "preload.js")
       },
       show: true,
-      frame: false,
+      frame: true,
       transparent: true,
       fullscreenable: false,
       hasShadow: false,
-      // backgroundColor: "#00000021",
+      // backgroundColor: "#FF9",
       focusable: true,
       alwaysOnTop: true
     }
@@ -285,5 +287,27 @@ export class WindowHelper {
       Math.round(this.currentX),
       Math.round(this.currentY)
     )
+  }
+
+  public resizeWindow(width: number, height: number): void {
+    if (!this.mainWindow || this.mainWindow.isDestroyed()) return
+
+    this.mainWindow.setBounds({
+      width: width,
+      height: height,
+      x: this.currentX,
+      y: this.currentY
+    })
+
+    this.windowSize = { width, height }
+    // this.updateOverlayPosition()
+  }
+
+  public resizeWindowByFactor(factor: number): void {
+    if (!this.windowSize) return;
+
+    const newWidth = Math.floor(this.windowSize.width * factor);
+    const newHeight = Math.floor(this.windowSize.height * factor);
+    this.resizeWindow(newWidth, newHeight);
   }
 }

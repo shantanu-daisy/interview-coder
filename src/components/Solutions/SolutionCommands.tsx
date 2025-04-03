@@ -31,7 +31,7 @@ const ExtraScreenshotsQueueCommands: React.FC<
 
   return (
     <div className="">
-      <div className="pt-2 w-fit">
+      <div className="pt-2 w-full ">
         <div className="text-xs text-white/90 backdrop-blur-md bg-black/60 rounded-lg py-2 px-4 flex items-center justify-center gap-4">
           {/* Show/Hide */}
           <div className="flex items-center gap-2 whitespace-nowrap">
@@ -40,6 +40,9 @@ const ExtraScreenshotsQueueCommands: React.FC<
               <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
                 ⌘
               </button>
+              <div className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
+                    SHIFT
+                  </div>
               <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
                 B
               </button>
@@ -53,10 +56,13 @@ const ExtraScreenshotsQueueCommands: React.FC<
                 ? "Screenshot your code"
                 : "Screenshot"}
             </span>
-            <div className="flex gap-1">
+            <div className="flex leading-11 gap-1">
               <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
                 ⌘
               </button>
+              <div className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
+                    SHIFT
+                  </div>
               <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
                 H
               </button>
@@ -69,6 +75,9 @@ const ExtraScreenshotsQueueCommands: React.FC<
                 <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
                   ⌘
                 </button>
+                <div className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
+                    SHIFT
+                  </div>
                 <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
                   ↵
                 </button>
@@ -83,6 +92,7 @@ const ExtraScreenshotsQueueCommands: React.FC<
               <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
                 ⌘
               </button>
+              
               <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
                 R
               </button>

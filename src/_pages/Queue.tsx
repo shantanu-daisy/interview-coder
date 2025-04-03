@@ -120,16 +120,16 @@ const Queue: React.FC<QueueProps> = ({ setView, currentLanguage = 'PYTHON', setL
   }
 
   return (
-    <div ref={contentRef} className={`bg-transparent w-1/2`}>
-      <div className="px-4 py-3 ">
-        <div className="space-y-3 w-fit">
+    <div ref={contentRef} className={`bg-transparent w-full`}>
+      
+        <div className="space-y-3 px-3 py-2 w-full">
           <ScreenshotQueue
             isLoading={false}
             screenshots={screenshots}
             onDeleteScreenshot={handleDeleteScreenshot}
           />
 
-          <div className="pt-2 w-fit">
+          <div className="pt-2 w-full">
             <div className="text-xs text-white/90 backdrop-blur-md bg-black/60 rounded-lg py-2 px-4 flex items-center justify-center gap-4">
               {/* Show/Hide */}
               <div className="flex items-center gap-2">
@@ -138,6 +138,9 @@ const Queue: React.FC<QueueProps> = ({ setView, currentLanguage = 'PYTHON', setL
                   <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
                     ⌘
                   </button>
+                  <div className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
+                    SHIFT
+                  </div>
                   <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
                     B
                   </button>
@@ -155,6 +158,9 @@ const Queue: React.FC<QueueProps> = ({ setView, currentLanguage = 'PYTHON', setL
                   <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
                     ⌘
                   </button>
+                  <div className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
+                    SHIFT
+                  </div>
                   <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
                     H
                   </button>
@@ -185,6 +191,9 @@ const Queue: React.FC<QueueProps> = ({ setView, currentLanguage = 'PYTHON', setL
                     <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
                       ⌘
                     </button>
+                    <div className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
+                    SHIFT
+                  </div>
                     <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
                       ↵
                     </button>
@@ -199,7 +208,7 @@ const Queue: React.FC<QueueProps> = ({ setView, currentLanguage = 'PYTHON', setL
             </div>
           </div>
         </div>
-      </div>
+
     </div>
   )
 }

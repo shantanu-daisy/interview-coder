@@ -53,6 +53,9 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
                         ⌘
                       </span>
                       <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none">
+                        SHIFT
+                      </span>
+                      <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none">
                         B
                       </span>
                     </div>
@@ -68,6 +71,9 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
                     <div className="flex gap-1 flex-shrink-0">
                       <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none">
                         ⌘
+                      </span>
+                      <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none">
+                        SHIFT
                       </span>
                       <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] leading-none">
                         H

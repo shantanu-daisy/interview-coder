@@ -13,6 +13,8 @@ import Solutions from "./_pages/Solutions"
 import { QueryClient, QueryClientProvider } from "react-query"
 import ApiKeyAuth from "./components/ApiKeyAuth"
 import { createContext, useContext } from "react"
+import Question from "./_pages/Question"
+import Cheatsheet from "./_pages/Cheatsheet"
 
 declare global {
   interface Window {
@@ -85,7 +87,7 @@ export function useToast() {
 }
 
 const App: React.FC = () => {
-  const [view, setView] = useState<"queue" | "solutions" | "debug">("queue")
+  const [view, setView] = useState<"queue" | "solutions" | "debug" | "question" | "cheatsheet">("queue")
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const [toastOpen, setToastOpen] = useState(false)
@@ -206,6 +208,10 @@ const App: React.FC = () => {
               <Queue setView={setView} />
             ) : view === "solutions" ? (
               <Solutions setView={setView} />
+            ) : view === "question" ? (
+              <Question setView={setView} />
+            ) : view === "cheatsheet" ? (
+              <Cheatsheet setView={setView} />
             ) : (
               <></>
             )}
