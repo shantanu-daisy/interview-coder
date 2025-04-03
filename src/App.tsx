@@ -8,56 +8,21 @@ import {
 } from "./components/ui/toast"
 import Queue from "./_pages/Queue"
 import { ToastViewport } from "@radix-ui/react-toast"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useCallback } from "react"
 import Solutions from "./_pages/Solutions"
+import Question from "./_pages/Question"
+import Cheatsheet from "./_pages/Cheatsheet"
 import { QueryClient, QueryClientProvider } from "react-query"
 import ApiKeyAuth from "./components/ApiKeyAuth"
 import { createContext, useContext } from "react"
+import SubscribedApp from "./_pages/SubscribedApp"
+import { UpdateNotification } from "./components/UpdateNotification"
 
-declare global {
-  interface Window {
-    electronAPI: {
-      //RANDOM GETTER/SETTERS
-      updateContentDimensions: (dimensions: {
-        width: number
-        height: number
-      }) => Promise<void>
-      getScreenshots: () => Promise<Array<{ path: string; preview: string }>>
 
-      //GLOBAL EVENTS
-      onUnauthorized: (callback: () => void) => () => void
-      onApiKeyOutOfCredits: (callback: () => void) => () => void
-      onScreenshotTaken: (
-        callback: (data: { path: string; preview: string }) => void
-      ) => () => void
-      onProcessingNoScreenshots: (callback: () => void) => () => void
-      onResetView: (callback: () => void) => () => void
-      takeScreenshot: () => Promise<void>
 
-      //INITIAL SOLUTION EVENTS
-      deleteScreenshot: (
-        path: string
-      ) => Promise<{ success: boolean; error?: string }>
-      onSolutionStart: (callback: () => void) => () => void
-      onSolutionError: (callback: (error: string) => void) => () => void
-      onSolutionSuccess: (callback: (data: any) => void) => () => void
-      onProblemExtracted: (callback: (data: any) => void) => () => void
+import { WelcomeScreen } from "./components/WelcomeScreen"
+import { SettingsDialog } from "./components/SettingsDialog"
 
-      onDebugSuccess: (callback: (data: any) => void) => () => void
-
-      onDebugStart: (callback: () => void) => () => void
-      onDebugError: (callback: (error: string) => void) => () => void
-
-      // Add the updateApiKey method
-      updateApiKey: (apiKey: string) => Promise<void>
-      setApiKey: (
-        apiKey: string
-      ) => Promise<{ success: boolean; error?: string }>
-
-      openExternal: (url: string) => Promise<void>
-    }
-  }
-}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -85,7 +50,7 @@ export function useToast() {
 }
 
 const App: React.FC = () => {
-  const [view, setView] = useState<"queue" | "solutions" | "debug">("queue")
+  const [view, setView] = useState<"queue" | "solutions" | "debug" | "question" | "cheatsheet">("queue")
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const [toastOpen, setToastOpen] = useState(false)
@@ -94,6 +59,9 @@ const App: React.FC = () => {
     description: "",
     variant: "neutral"
   })
+  const [currentLanguage, setCurrentLanguage] = useState<string>("python")
+  const [isInitialized, setIsInitialized] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   const handleApiKeySubmit = async (key: string) => {
     const result = await window.electronAPI.setApiKey(key)
@@ -101,6 +69,16 @@ const App: React.FC = () => {
       setIsAuthenticated(true)
     }
   }
+
+  const updateLanguage = useCallback((newLanguage: string) => {
+    setCurrentLanguage(newLanguage)
+    window.__LANGUAGE__ = newLanguage
+  }, [])
+
+    const markInitialized = useCallback(() => {
+    setIsInitialized(true)
+    window.__IS_INITIALIZED__ = true
+  }, [])
 
   const showToast = (
     title: string,
@@ -110,8 +88,84 @@ const App: React.FC = () => {
     setToastMessage({ title, description, variant })
     setToastOpen(true)
   }
+  
+  useEffect(() => {
+    const autoAuthWithEnvKey = async () => {
+      try {
+        const envApiKey = import.meta.env.VITE_OPENAI_API_KEY
+        if (envApiKey && envApiKey.trim() !== '') {
+          const result = await window.electronAPI.setApiKey(envApiKey)
+          if (result.success) {
+            setIsAuthenticated(true)
+          }
+        }
+      } catch (error) {
+        console.error("Failed to auto-authenticate with env variable:", error)
+      }
+    }
 
-  // Effect for height monitoring
+    const checkApiKey = async () => {
+      try {
+        const hasKey = await window.electronAPI.checkApiKey()
+        
+        // If no API key is found, show the settings dialog after a short delay
+        if (!hasKey) {
+          setTimeout(() => {
+            setIsSettingsOpen(true)
+          }, 1000)
+        }
+        setIsAuthenticated(hasKey)
+      } catch (error) {
+        console.error("Failed to check API key:", error)
+      }
+    }
+
+    // checkApiKey()
+    autoAuthWithEnvKey()
+  }, [])
+  
+
+  useEffect(() => {
+    if (isInitialized) {
+      // Process all types of dropdown elements with a shorter delay
+      const timer = setTimeout(() => {
+        // Find both native select elements and custom dropdowns
+        const selectElements = document.querySelectorAll('select');
+        const customDropdowns = document.querySelectorAll('.dropdown-trigger, [role="combobox"], button:has(.dropdown)');
+        
+        // Enable native selects
+        selectElements.forEach(dropdown => {
+          dropdown.disabled = false;
+        });
+        
+        // Enable custom dropdowns by removing any disabled attributes
+        customDropdowns.forEach(dropdown => {
+          if (dropdown instanceof HTMLElement) {
+            dropdown.removeAttribute('disabled');
+            dropdown.setAttribute('aria-disabled', 'false');
+          }
+        });
+        
+        console.log(`Enabled ${selectElements.length} select elements and ${customDropdowns.length} custom dropdowns`);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isInitialized]);
+
+     useEffect(() => {
+    const unsubscribeSettings = window.electronAPI.onShowSettings(() => {
+      console.log("Show settings dialog requested");
+      setIsSettingsOpen(true);
+    });
+    
+    return () => {
+      unsubscribeSettings();
+    };
+  }, []);
+
+    let initialLoad = false
+
 
   useEffect(() => {
     const cleanup = window.electronAPI.onResetView(() => {
@@ -134,7 +188,11 @@ const App: React.FC = () => {
       if (!containerRef.current) return
       const height = containerRef.current.scrollHeight
       const width = containerRef.current.scrollWidth
-      window.electronAPI?.updateContentDimensions({ width, height })
+      console.log("Updating dimensions", width, height)
+      if (!initialLoad) {
+        window.electronAPI?.updateContentDimensions({ width, height })
+        initialLoad = true
+      }    
     }
 
     const resizeObserver = new ResizeObserver(() => {
@@ -164,6 +222,56 @@ const App: React.FC = () => {
       mutationObserver.disconnect()
     }
   }, [view]) // Re-run when view changes
+
+//     useEffect(() => {
+
+//     const initializeApp = async () => {
+//       try {
+        
+//         // Load config including language and model settings
+//         const config = await window.electronAPI.getConfig()
+        
+//         // Load language preference
+//         if (config && config.language) {
+//           updateLanguage(config.language)
+//         } else {
+//           updateLanguage("python")
+//         }
+
+        
+        
+//         // Model settings are now managed through the settings dialog
+//         // and stored in config as extractionModel, solutionModel, and debuggingModel
+        
+//         markInitialized()
+//       } catch (error) {
+//         console.error("Failed to initialize app:", error)
+//         // Fallback to defaults
+//         updateLanguage("python")
+//         markInitialized()
+//       }
+//     }
+    
+//     initializeApp()
+
+//         const onApiKeyInvalid = () => {
+//       showToast(
+//         "API Key Invalid",
+//         "Your OpenAI API key appears to be invalid or has insufficient credits",
+//         "error"
+//       )
+
+//     }
+//     window.electronAPI.onApiKeyInvalid(onApiKeyInvalid)
+// // Cleanup function
+//     return () => {
+//       window.electronAPI.removeListener("API_KEY_INVALID", onApiKeyInvalid)
+
+//       window.__IS_INITIALIZED__ = false
+//       setIsInitialized(false)
+//     }
+//   }, [updateLanguage, markInitialized, showToast])
+
   useEffect(() => {
     const cleanupFunctions = [
       window.electronAPI.onSolutionStart(() => {
@@ -198,9 +306,9 @@ const App: React.FC = () => {
   }
 
   return (
-    <div ref={containerRef} className="min-h-0">
-      <QueryClientProvider client={queryClient}>
-        <ToastProvider>
+    <div ref={containerRef} className="max-h-0 max-w-0 ">
+      <QueryClientProvider client={queryClient} >
+        <ToastProvider >
           <ToastContext.Provider value={{ showToast }}>
             {view === "queue" ? (
               <Queue setView={setView} />

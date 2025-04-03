@@ -2,13 +2,28 @@ import React, { useState, useEffect, useRef } from "react"
 import { useQuery } from "react-query"
 import ScreenshotQueue from "../components/Queue/ScreenshotQueue"
 import QueueCommands from "../components/Queue/QueueCommands"
+// import { useToast } from "../contexts/toast"
 import { useToast } from "../App"
-
+import { ToastVariant } from "../components/ui/toast"
+import { Screenshot } from "../types"
 interface QueueProps {
-  setView: React.Dispatch<React.SetStateAction<"queue" | "solutions" | "debug">>
+  setView: React.Dispatch<React.SetStateAction<"queue" | "solutions" | "debug" | "question" | "cheatsheet">>
+  currentLanguage?: string
+  setLanguage?: (language: string) => void
 }
 
-const Queue: React.FC<QueueProps> = ({ setView }) => {
+async function fetchScreenshots({showToast}: {showToast: (title: string, message: string, variant: ToastVariant) => void}): Promise<Screenshot[]> {
+  try {
+    const existing = await window.electronAPI.getScreenshots()
+    return existing
+  } catch (error) {
+    console.error("Error loading screenshots:", error)
+    showToast("Error", "Failed to load existing screenshots", "error")
+    throw error
+  }
+}
+
+const Queue: React.FC<QueueProps> = ({ setView, currentLanguage = 'PYTHON', setLanguage }) => {
   const { showToast } = useToast()
 
   const [isTooltipVisible, setIsTooltipVisible] = useState(false)
@@ -17,16 +32,7 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
 
   const { data: screenshots = [], refetch } = useQuery({
     queryKey: ["screenshots"],
-    queryFn: async () => {
-      try {
-        const existing = await window.electronAPI.getScreenshots()
-        return existing
-      } catch (error) {
-        console.error("Error loading screenshots:", error)
-        showToast("Error", "Failed to load existing screenshots", "error")
-        return []
-      }
-    },
+    queryFn: () => fetchScreenshots({showToast}),
     staleTime: Infinity,
     cacheTime: Infinity,
     refetchOnWindowFocus: true,
@@ -51,22 +57,25 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
       console.error("Error deleting screenshot:", error)
     }
   }
-
-  useEffect(() => {
-    // Height update logic
-    const updateDimensions = () => {
+  const updateDimensions = () => {
       if (contentRef.current) {
         let contentHeight = contentRef.current.scrollHeight
         const contentWidth = contentRef.current.scrollWidth
         if (isTooltipVisible) {
           contentHeight += tooltipHeight
         }
-        window.electronAPI.updateContentDimensions({
-          width: contentWidth,
-          height: contentHeight
-        })
+        // window.electronAPI.updateContentDimensions({
+        //   width: contentWidth,
+        //   height: contentHeight
+        // })
       }
     }
+
+    
+  useEffect(() => {
+    // Height update logic
+    updateDimensions()
+    
 
     // Initialize resize observer
     const resizeObserver = new ResizeObserver(updateDimensions)
@@ -102,7 +111,7 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
       resizeObserver.disconnect()
       cleanupFunctions.forEach((cleanup) => cleanup())
     }
-  }, [isTooltipVisible, tooltipHeight])
+  }, [isTooltipVisible, tooltipHeight, screenshots])
 
   const handleTooltipVisibilityChange = (visible: boolean, height: number) => {
     setIsTooltipVisible(visible)
@@ -148,6 +157,22 @@ const Queue: React.FC<QueueProps> = ({ setView }) => {
                   <button className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
                     H
                   </button>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] leading-none truncate">
+                  {screenshots.length === 0 ? "Ask Question" : "Question"}
+                </span>
+                <div className="flex gap-1">
+                  <div className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
+                    ⌘
+                  </div>
+                  <div className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
+                    SHIFT
+                  </div>
+                  <div className="bg-white/10 hover:bg-white/20 transition-colors rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70">
+                    E
+                  </div>
                 </div>
               </div>
 
