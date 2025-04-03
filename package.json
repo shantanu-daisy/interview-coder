@@ -14,7 +14,7 @@
   },
   "build": {
     "appId": "interview.coder.id",
-    "productName": "Interview Coder",
+    "productName": "Phantom",
     "files": [
       "dist/**/*",
       "dist-electron/**/*",

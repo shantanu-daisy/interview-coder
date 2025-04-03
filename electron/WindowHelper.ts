@@ -94,7 +94,7 @@ export class WindowHelper {
         preload: path.join(__dirname, "preload.js")
       },
       show: true,
-      frame: true,
+      frame: false,
       transparent: true,
       fullscreenable: false,
       hasShadow: false,
