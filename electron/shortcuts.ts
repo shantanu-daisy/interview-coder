@@ -31,7 +31,7 @@ export class ShortcutsHelper {
       await this.appState.processingHelper.processScreenshots()
     })
 
-    globalShortcut.register("CommandOrControl+R", () => {
+    globalShortcut.register("CommandOrControl+Shift+R", () => {
       console.log(
         "Command + R pressed. Canceling requests and resetting queues..."
       )

@@ -42,7 +42,7 @@ export class ScreenshotHelper {
     return this.view
   }
 
-  public setView(view: "queue" | "solutions" | "question"): void {
+  public setView(view: "queue" | "solutions" |  | "question" | "cheatsheet"): void {
     this.view = view
   }
 

@@ -10,7 +10,7 @@ export function initializeIpcHandlers(appState: AppState): void {
     "update-content-dimensions",
     async (event, { width, height }: { width: number; height: number }) => {
       if (width && height) {
-        console.log("SETTING DIMENSIONS", width, height)
+        // console.log("SETTING DIMENSIONS", width, height)
         // console.log(event)
         appState.setWindowDimensions(width, height)
       }
